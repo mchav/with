@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+# with tool
+# usage: with <program>
+# opens an interactive shell instance that automatically prefixes all subsequent commands with program name
+
+pmpt="$*>"
+
+which $1 2>&1 > /dev/null
+program_installed=$?
+if [ ! $program_installed -eq 0 ]; then
+  echo "Error: Program" $1 "is not installed"
+  exit 1
+fi
+
+stop=false
+while [ true ]; do
+  while IFS="" read -r -e -d $'\n' -p "$pmpt " options; do
+
+    history -s "$options"
+    
+    # terminate programme
+    if [ "$options" = ":q" ]; then
+      # terminate out of while loop instead of exiting so we can do some safe exiting
+      stop=true
+      break
+    else
+
+      curr_command="$(echo $options | { read first rest ; echo $first ; })"
+      if [[ $curr_command != :* ]]; then
+        eval "$* $options"
+      else
+        parsed=${options#":"}
+        eval $parsed
+      fi
+
+    fi
+  done
+
+  if [ stop=true ]; then
+    break
+  fi
+
+done
