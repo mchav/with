@@ -33,7 +33,7 @@ while [ true ]; do
       # nesting withs
       elif [[ $curr_command == +* ]]; then
         parsed=${options#"+"}
-        prefix=$( echo $prefix $parsed )
+        prefix=$( echo "$prefix" "$parsed" )
         pmpt="$prefix>"
       # process shell commands
       elif [[ $curr_command == :* ]]; then
