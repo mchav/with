@@ -35,4 +35,7 @@ Compiling...
 gcc -o -output input.c>
 ```
 
+
+To execute a shell command proper prefix line with ":".
+
 Currently supports command history and limited completions.
