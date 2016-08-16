@@ -38,4 +38,7 @@ gcc -o -output input.c>
 
 To execute a shell command proper prefix line with ":".
 
+
+`git> :ls`
+
 Currently supports command history and limited completions.
