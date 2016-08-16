@@ -6,34 +6,54 @@
 
 pmpt="$*>"
 
+prefix=$*
+
 which $1 2>&1 > /dev/null
 program_installed=$?
 if [ ! $program_installed -eq 0 ]; then
-  echo "Error: Program" $1 "is not installed"
+  echo "error: Program" $1 "is not installed"
   exit 1
 fi
 
 stop=false
 while [ true ]; do
   while IFS="" read -r -e -d $'\n' -p "$pmpt " options; do
-
     history -s "$options"
     
-    # terminate programme
-    if [ "$options" = ":q" ]; then
-      # terminate out of while loop instead of exiting so we can do some safe exiting
+    curr_command="$(echo $options | { read first rest ; echo $first ; })" 
+
+    if [ -z "$curr_command" ]; then
+      # null case
+      eval "${prefix}"
+    else
+      # remove with
+      if [ $curr_command == - ]; then
+        prefix=$( echo $prefix | awk '{$NF="";sub(/[ \t]+$/,"")}1' )
+        pmpt="$prefix>"
+      # nesting withs
+      elif [[ $curr_command == +* ]]; then
+        parsed=${options#"+"}
+        prefix=$( echo $prefix $parsed )
+        pmpt="$prefix>"
+      # process shell commands
+      elif [[ $curr_command == :* ]]; then
+        parsed=${options#":"}
+        if [ "$parsed" = "q" ]; then
+          # terminate out of while loop instead of exiting so we can do some safe exiting
+          stop=true
+          break
+        fi
+        eval "$parsed"
+      else
+        eval "$prefix $options"
+      fi
+    fi
+    # see if there are any commands left
+    if [ -z "$prefix" ]; then
+      echo "No program. Returning to shell."
+      # null case
       stop=true
       break
-    else
-
-      curr_command="$(echo $options | { read first rest ; echo $first ; })"
-      if [[ $curr_command != :* ]]; then
-        eval "$* $options"
-      else
-        parsed=${options#":"}
-        eval $parsed
-      fi
-
     fi
   done
 
