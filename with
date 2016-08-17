@@ -20,7 +20,7 @@ while [ true ]; do
   while IFS="" read -r -e -d $'\n' -p "$pmpt " options; do
     history -s "$options"
     
-    curr_command="$(echo $options | { read first rest ; echo $first ; })" 
+    curr_command="$({ read first rest ; echo $first ; } <<<"$options")" 
 
     if [ -z "$curr_command" ]; then
       # null case
@@ -28,12 +28,12 @@ while [ true ]; do
     else
       # remove with
       if [ $curr_command == - ]; then
-        prefix=$( echo $prefix | awk '{$NF="";sub(/[ \t]+$/,"")}1' )
+        prefix=$( awk '{$NF="";sub(/[ \t]+$/,"")}1' <<<"$prefix" )
         pmpt="$prefix>"
       # nesting withs
       elif [[ $curr_command == +* ]]; then
         parsed=${options#"+"}
-        prefix=$( echo "$prefix" "$parsed" )
+        prefix="$prefix $parsed"
         pmpt="$prefix>"
       # process shell commands
       elif [[ $curr_command == :* ]]; then
