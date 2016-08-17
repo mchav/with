@@ -8,7 +8,7 @@ pmpt="$*>"
 
 prefix=$*
 
-if ! which $1 2>&1 > /dev/null; then
+if ! which $1 >/dev/null 2>&1; then
   echo "error: Program" $1 "is not installed"
   exit 1
 fi
