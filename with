@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # with tool
 # usage: with <program>
@@ -7,7 +7,7 @@
 # thanks to /u/Vaphell
 drop_with()
 {
-    if (( ${#prefix[@]} > 1 ))
+    if [ ${#prefix[@]} -gt 1  ]
     then
         prefix=( "${prefix[@]:0:${#prefix[@]}-1}" )
     else
