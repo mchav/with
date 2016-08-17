@@ -1,4 +1,4 @@
-# With
+# with
 Program prefixing for continuous workflow using a single tool.
 
 ### Usage
@@ -36,7 +36,7 @@ gcc -o -output input.c>
 ```
 
 
-To execute a shell command proper prefix line with ":".
+To execute a shell command proper prefix line with `:`.
 
 
 `git> :ls`
