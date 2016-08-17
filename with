@@ -8,15 +8,13 @@ pmpt="$*>"
 
 prefix=$*
 
-which $1 2>&1 > /dev/null
-program_installed=$?
-if [ ! $program_installed -eq 0 ]; then
+if ! which $1 >/dev/null 2>&1; then
   echo "error: Program" $1 "is not installed"
   exit 1
 fi
 
 stop=false
-while [ true ]; do
+while true; do
   while IFS="" read -r -e -d $'\n' -p "$pmpt " options; do
     history -s "$options"
     
