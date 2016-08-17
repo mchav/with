@@ -4,9 +4,17 @@
 # usage: with <program>
 # opens an interactive shell instance that automatically prefixes all subsequent commands with program name
 
-pmpt="$*>"
+# prompt env checker function
+function getpmpt(){
+	if [ "$WITH_PROMPT" != "" ]; then
+		sed "s/%c/$*/g" <<< "$WITH_PROMPT"
+	else
+		echo "$*>"
+	fi
+}
 
 prefix=$*
+pmpt="$(getpmpt $prefix)"
 
 which $1 2>&1 > /dev/null
 program_installed=$?
@@ -29,12 +37,12 @@ while [ true ]; do
       # remove with
       if [ $curr_command == - ]; then
         prefix=$( echo $prefix | awk '{$NF="";sub(/[ \t]+$/,"")}1' )
-        pmpt="$prefix>"
+		pmpt="$(getpmpt $prefix)"
       # nesting withs
       elif [[ $curr_command == +* ]]; then
         parsed=${options#"+"}
         prefix=$( echo "$prefix" "$parsed" )
-        pmpt="$prefix>"
+		pmpt="$(getpmpt $prefix)"
       # process shell commands
       elif [[ $curr_command == :* ]]; then
         parsed=${options#":"}
