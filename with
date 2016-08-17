@@ -51,7 +51,7 @@ run_with()
           ${parsed} ;;
         * )
           # prepend prefix to command
-          ${prefix[@]} ${options}
+          eval "${prefix[@]} ${options}"
     esac
   done
 }
