@@ -1,64 +1,72 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 # with tool
 # usage: with <program>
 # opens an interactive shell instance that automatically prefixes all subsequent commands with program name
 
-pmpt="$*>"
+# thanks to /u/Vaphell
+drop_with()
+{
+    if (( ${#prefix[@]} > 1 ))
+    then
+        prefix=( "${prefix[@]:0:${#prefix[@]}-1}" )
+    else
+        exit 0
+    fi
+}
 
-prefix=$*
+add_with()
+{
+  # separate into white space
+  # FIXME: foo "bar baz" should add two elements not one
+  IFS=' ' read -r -a parse_array <<< "$@"
+  prefix=( "${prefix[@]}" "${parse_array[@]}" )
+}
 
-which $1 2>&1 > /dev/null
+run_with()
+{
+  while IFS="" read -r -e -d $'\n' -p "$pmpt> " options; do
+    history -s "$options"
+
+    curr_command="$(echo $options | { read first rest ; echo $first ; })"
+    case $curr_command in
+        "" )
+          # null case: run prefix
+          ${prefix[@]} ;;
+        "-" )
+          # remove with
+          drop_with
+          pmpt="${prefix[@]}" ;;
+        +* )
+          # nesting withs
+          parsed=${options#"+"}
+          add_with "$parsed"
+          pmpt="${prefix[@]}" ;;
+        :* )
+          # shell command
+          parsed=${options#":"}
+          if [ "$parsed" = "q" ]; then
+            exit 0
+          fi
+          ${parsed} ;;
+        * )
+          # prepend prefix to command
+          ${prefix[@]} ${options}
+    esac
+  done
+}
+
+declare -a prefix
+prefix=( "$@" )
+pmpt=${prefix[*]}
+
+type $1 2>&1 > /dev/null
 program_installed=$?
 if [ ! $program_installed -eq 0 ]; then
   echo "error: Program" $1 "is not installed"
   exit 1
 fi
 
-stop=false
 while [ true ]; do
-  while IFS="" read -r -e -d $'\n' -p "$pmpt " options; do
-    history -s "$options"
-    
-    curr_command="$(echo $options | { read first rest ; echo $first ; })" 
-
-    if [ -z "$curr_command" ]; then
-      # null case
-      eval "${prefix}"
-    else
-      # remove with
-      if [ $curr_command == - ]; then
-        prefix=$( echo $prefix | awk '{$NF="";sub(/[ \t]+$/,"")}1' )
-        pmpt="$prefix>"
-      # nesting withs
-      elif [[ $curr_command == +* ]]; then
-        parsed=${options#"+"}
-        prefix=$( echo "$prefix" "$parsed" )
-        pmpt="$prefix>"
-      # process shell commands
-      elif [[ $curr_command == :* ]]; then
-        parsed=${options#":"}
-        if [ "$parsed" = "q" ]; then
-          # terminate out of while loop instead of exiting so we can do some safe exiting
-          stop=true
-          break
-        fi
-        eval "$parsed"
-      else
-        eval "$prefix $options"
-      fi
-    fi
-    # see if there are any commands left
-    if [ -z "$prefix" ]; then
-      echo "No program. Returning to shell."
-      # null case
-      stop=true
-      break
-    fi
-  done
-
-  if [ stop=true ]; then
-    break
-  fi
-
+  run_with
 done
