@@ -1,6 +1,10 @@
 # with
 Program prefixing for continuous workflow using a single tool.
 
+### Installation
+
+`curl -s https://raw.githubusercontent.com/mchav/with/master/install | bash`
+
 ### Usage
 
 `with <program>`
