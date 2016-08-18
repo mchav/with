@@ -54,4 +54,6 @@ git add> -
 git>
 ```
 
+To exit use either `:q` or `:exit:`.
+
 Currently supports command history and limited completions.
