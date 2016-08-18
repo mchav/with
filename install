@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+echo "Installing with"
+curl --silent https://raw.githubusercontent.com/mchav/with/master/with --output /usr/local/bin/with && chmod +x /usr/local/bin/with &&
+echo "with successfully installed!"
