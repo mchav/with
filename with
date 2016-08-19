@@ -61,9 +61,15 @@ declare -a prefix
 prefix=( "$@" )
 pmpt=${prefix[*]}
 
-if [ -z "$*" ] || [ "$*" == "--help" ]; then
-  echo "usage: with <program>"
-  # Not sure if this should be an error or not
+
+helpmsg="usage: with <program>"
+if [ -z "$*" ]; then
+  echo "Missing arguments."
+  echo $helpmsg
+  exit 1
+fi
+if [ "$*" == "--help" ]; then
+  echo $helpmsg
   exit 0
 fi
 
