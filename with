@@ -49,11 +49,9 @@ run_with()
             exit 0
           fi
           IFS=' ' read -r -a parsed_array <<< "$parsed"
-          history -a -s "${parsed_array[@]}" > /dev/null 2>&1
           eval "${parsed_array[@]}" ;;
         * )
           # prepend prefix to command
-          history -a -s "${prefix[*]} ${options}" > /dev/null 2>&1
           eval "${prefix[*]} ${options}"
     esac
   done
