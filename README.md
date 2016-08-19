@@ -3,7 +3,23 @@ Program prefixing for continuous workflow using a single tool.
 
 ### Installation
 
-`curl -s https://raw.githubusercontent.com/mchav/with/master/install | bash`
+With [bpkg](https://github.com/bpkg/bpkg):
+
+```sh
+bpkg install mchav/with -g
+```
+
+With [rawgit](https://rawgit.com):
+
+```sh
+curl -sLo- https://cdn.rawgit.com/mchav/with/master/install | bash
+```
+
+or:
+
+```
+curl -s https://raw.githubusercontent.com/mchav/with/master/install | bash
+```
 
 ### Usage
 
