@@ -26,32 +26,35 @@ add_with()
 run_with()
 {
   while IFS="" read -r -e -d $'\n' -p "$pmpt> " options; do
-    history -s "$options"
+    history -s "$options" > /dev/null 2>&1
 
-    curr_command="$(echo $options | { read first rest ; echo $first ; })"
+    curr_command="$(echo "$options" | { read -r first rest ; echo "$first" ; })"
     case $curr_command in
         "" )
           # null case: run prefix
-          ${prefix[@]} ;;
+          ${prefix[*]} ;;
         "-" )
           # remove with
           drop_with
-          pmpt="${prefix[@]}" ;;
+          pmpt="${prefix[*]}" ;;
         +* )
           # nesting withs
           parsed=${options#"+"}
           add_with "$parsed"
-          pmpt="${prefix[@]}" ;;
+          pmpt="${prefix[*]}" ;;
         :* )
           # shell command
           parsed=${options#":"}
           if [ "$parsed" = "q" ]; then
             exit 0
           fi
-          ${parsed} ;;
+          IFS=' ' read -r -a parsed_array <<< "$parsed"
+          history -a -s "${parsed_array[@]}" > /dev/null 2>&1
+          eval "${parsed_array[@]}" ;;
         * )
           # prepend prefix to command
-          eval "${prefix[@]} ${options}"
+          history -a -s "${prefix[*]} ${options}" > /dev/null 2>&1
+          eval "${prefix[*]} ${options}"
     esac
   done
 }
@@ -60,13 +63,17 @@ declare -a prefix
 prefix=( "$@" )
 pmpt=${prefix[*]}
 
-type $1 2>&1 > /dev/null
-program_installed=$?
-if [ ! $program_installed -eq 0 ]; then
-  echo "error: Program" $1 "is not installed"
+if [ -z "$*" ] || [ "$*" == "--help" ]; then
+  echo "usage: with <program>"
+  # Not sure if this should be an error or not
+  exit 0
+fi
+
+if ! type "$1" > /dev/null 2>&1; then
+  echo "error: Program" "$1" "is not installed"
   exit 1
 fi
 
-while [ true ]; do
+while true ; do
   run_with
 done
