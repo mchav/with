@@ -4,15 +4,34 @@
 # usage: with <program>
 # opens an interactive shell instance that automatically prefixes all subsequent commands with program name
 
+# initialise history file
+touch /tmp/with_history
+
+function finish {
+  # save history to bash history
+  if [ -f ~/.bash_history ]; then
+    cat /tmp/with_history >> ~/.bash_history
+  fi
+  rm /tmp/with_history
+}
+
+update()
+{
+  # FIXME: Check versions
+  echo "Updating with"
+  sudo curl -s https://raw.githubusercontent.com/mchav/with/master/with -o /usr/local/bin/with && sudo chmod +x /usr/local/bin/with
+  echo "with successfully updated!"
+}
+
 # thanks to /u/Vaphell
 drop_with()
 {
-    if [ ${#prefix[@]} -gt 1  ]
-    then
-        prefix=( "${prefix[@]:0:${#prefix[@]}-1}" )
-    else
-        exit 0
-    fi
+  if [ ${#prefix[@]} -gt 1  ]
+  then
+    prefix=( "${prefix[@]:0:${#prefix[@]}-1}" )
+  else
+    exit 0
+  fi
 }
 
 add_with()
@@ -30,32 +49,36 @@ run_with()
 
     curr_command="$(echo "$options" | { read -r first rest ; echo "$first" ; })"
     case $curr_command in
-        "" )
-          # null case: run prefix
-          ${prefix[*]} ;;
-        "-" )
-          # remove with
-          drop_with
-          pmpt="${prefix[*]}" ;;
-        +* )
-          # nesting withs
-          parsed=${options#"+"}
-          add_with "$parsed"
-          pmpt="${prefix[*]}" ;;
-        :* )
-          # shell command
-          parsed=${options#":"}
-          if [ "$parsed" = "q" ]; then
-            exit 0
-          fi
-          IFS=' ' read -r -a parsed_array <<< "$parsed"
-          eval "${parsed_array[@]}" ;;
-        * )
-          # prepend prefix to command
-          eval "${prefix[*]} ${options}"
+      "" )
+        # null case: run prefix
+        ${prefix[*]} ;;
+      "-" )
+        # remove with
+        drop_with
+        pmpt="${prefix[*]}" ;;
+      +* )
+        # nesting withs
+        parsed=${options#"+"}
+        add_with "$parsed"
+        pmpt="${prefix[*]}" ;;
+      :* )
+        # shell command
+        parsed=${options#":"}
+        if [ "$parsed" = "q" ]; then
+          exit 0
+        fi
+        IFS=' ' read -r -a parsed_array <<< "$parsed"
+        echo "${parsed_array[@]}" >> /tmp/with_history
+        eval "${parsed_array[@]}" ;;
+      * )
+        # prepend prefix to command
+        echo "${prefix[*]} ${options}" >> /tmp/with_history
+        eval "${prefix[*]} ${options}"
     esac
   done
 }
+
+trap finish exit
 
 declare -a prefix
 prefix=( "$@" )
@@ -70,6 +93,10 @@ if [ -z "$*" ]; then
 fi
 if [ "$*" == "--help" ]; then
   echo $helpmsg
+  exit 0
+fi
+if [ "$*" == "--update" ]; then
+  update
   exit 0
 fi
 
