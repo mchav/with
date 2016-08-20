@@ -25,6 +25,7 @@ update()
   echo "Updating with"
   sudo curl -s https://raw.githubusercontent.com/mchav/with/master/with -o /usr/local/bin/with && sudo chmod +x /usr/local/bin/with
   echo "with successfully updated!"
+  exit 0
 }
 
 # thanks to /u/Vaphell
