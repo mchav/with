@@ -5,6 +5,12 @@ Program prefixing for continuous workflow using a single tool.
 
 ### Installation
 
+With [apt-get](https://wiki.debian.org/apt-get)
+
+```sh
+sudo add-apt-repository ppa:mchav/with && sudo apt-get update && sudo apt-get install with
+```
+
 With [bpkg](https://github.com/bpkg/bpkg):
 
 ```sh
