@@ -106,7 +106,7 @@ prefix=( "$@" )
 pmpt=${prefix[*]}
 
 #add options here, such as -h, -v
-case $prefix in
+case ${prefix[*]} in
 	"" )
 	  echo "Missing arguments."
 	  echo "$helpmsg"
