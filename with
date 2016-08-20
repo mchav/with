@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
-VERSION=0.0.1
+VERSION="0.0.1"
 
 # with tool
 # usage: with <program>
 # opens an interactive shell instance that automatically prefixes all subsequent commands with program name
 
 # initialise history file
-
-helpmsg="usage: with <program>"
 touch /tmp/with_history
 
-function finish {
+helpmsg="usage: with <program>"
+
+finish() 
+{
   # save history to bash history
   if [ -f ~/.bash_history ]; then
     cat /tmp/with_history >> ~/.bash_history
@@ -83,7 +84,7 @@ run_with()
 
 print_version()
 {
-  echo "with version:$VERSION"
+  echo "with, version $VERSION"
   exit 0
 }
 
@@ -95,7 +96,7 @@ print_help()
   echo "options:"
   echo "	-h, --help: Display this message"
   echo "	-v, --version: Display the currently installed version of with"
-  echo "	-u, --update: Check of update"
+  echo "	-u, --update: Check for update"
   exit 0
 }
 
