@@ -1,9 +1,27 @@
 # with
 Program prefixing for continuous workflow using a single tool.
 
+[Discuss a feature or stop by for some tea on gitter](https://gitter.im/with-tool/with)
+
 ### Installation
 
-`curl -s https://raw.githubusercontent.com/mchav/with/master/install | bash`
+With [bpkg](https://github.com/bpkg/bpkg):
+
+```sh
+bpkg install mchav/with -g
+```
+
+With [rawgit](https://rawgit.com):
+
+```sh
+curl -sLo- https://cdn.rawgit.com/mchav/with/master/install | bash
+```
+
+or:
+
+```
+curl -s https://raw.githubusercontent.com/mchav/with/master/install | bash
+```
 
 ### Usage
 
@@ -54,6 +72,6 @@ git add> -
 git>
 ```
 
-To exit use either `:q` or `:exit:`.
+To exit use either `:q` or `:exit`.
 
 Currently supports command history and limited completions.

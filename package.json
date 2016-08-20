@@ -1,0 +1,8 @@
+{
+  "name": "with",
+  "version": "0.0.1",
+  "description": "Program prefixing for continuous workflow using a single tool.",
+  "global": "1",
+  "install": "install -b with ${PREFIX:-/usr/local}/bin/with",
+  "scripts": [ "with" ]
+}
