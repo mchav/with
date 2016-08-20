@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
+VERSION=0.0.1
 
 # with tool
 # usage: with <program>
 # opens an interactive shell instance that automatically prefixes all subsequent commands with program name
 
 # initialise history file
+
+helpmsg="usage: with <program>"
 touch /tmp/with_history
 
 function finish {
@@ -78,27 +81,49 @@ run_with()
   done
 }
 
+print_version()
+{
+  echo "with version:$VERSION"
+  exit 0
+}
+
+print_help()
+{
+  echo "with tool"
+  echo "$helpmsg"
+  echo "opens an interactive shell instance that automatically prefixes all subsequent commands with program name"
+  echo "options:"
+  echo "	-h, --help: Display this message"
+  echo "	-v, --version: Display the currently installed version of with"
+  echo "	-u, --update: Check of update"
+  exit 0
+}
+
 trap finish exit
 
 declare -a prefix
 prefix=( "$@" )
 pmpt=${prefix[*]}
 
-
-helpmsg="usage: with <program>"
-if [ -z "$*" ]; then
-  echo "Missing arguments."
-  echo $helpmsg
-  exit 1
-fi
-if [ "$*" == "--help" ]; then
-  echo $helpmsg
-  exit 0
-fi
-if [ "$*" == "--update" ]; then
-  update
-  exit 0
-fi
+#add options here, such as -h, -v
+case $prefix in
+	"" )
+	  echo "Missing arguments."
+	  echo "$helpmsg"
+	  exit 1;;
+	"-v" )
+	  print_version;;
+	"--version" )
+	  print_version;;
+	"-h" )
+	  print_help;;
+	"--help" )
+	  print_help;;
+	"-u" )
+	  update;;
+	"--update" )
+	  update;;
+esac
 
 if ! type "$1" > /dev/null 2>&1; then
   echo "error: Program" "$1" "is not installed"
