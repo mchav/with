@@ -10,4 +10,5 @@
 
 echo "Installing with"
 sudo curl -s https://raw.githubusercontent.com/mchav/with/master/with -o /usr/bin/with && sudo chmod +x /usr/bin/with
+sudo curl -s https://raw.githubusercontent.com/mchav/with/master/with.bash-completion -o /etc/bash_completion.d/with.bash-completion
 echo "with successfully installed!"

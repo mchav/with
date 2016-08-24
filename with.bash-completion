@@ -1,0 +1,2 @@
+# bash completion for with
+complete -F _command with # command completion
