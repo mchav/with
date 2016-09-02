@@ -10,7 +10,7 @@ touch /tmp/with_history
 
 helpmsg="usage: with <program>"
 
-finish() 
+finish()
 {
   # save history to bash history
   if [ -f ~/.bash_history ]; then
@@ -109,22 +109,22 @@ pmpt=${prefix[*]}
 
 #add options here, such as -h, -v
 case ${prefix[*]} in
-	"" )
-	  echo "Missing arguments."
-	  echo "$helpmsg"
-	  exit 1;;
-	"-v" )
-	  print_version;;
-	"--version" )
-	  print_version;;
-	"-h" )
-	  print_help;;
-	"--help" )
-	  print_help;;
-	"-u" )
-	  update;;
-	"--update" )
-	  update;;
+  "" )
+    echo "Missing arguments."
+    echo "$helpmsg"
+    exit 1;;
+  "-v" )
+    print_version;;
+  "--version" )
+    print_version;;
+  "-h" )
+    print_help;;
+  "--help" )
+    print_help;;
+  "-u" )
+    update;;
+  "--update" )
+    update;;
 esac
 
 if ! type "$1" > /dev/null 2>&1; then
