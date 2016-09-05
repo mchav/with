@@ -10,7 +10,7 @@ VERSION="0.0.1"
 BASH_COMPLETION_DEFAULT_DIR=/usr/share/bash-completion/completions
 for completion_file in $BASH_COMPLETION_DEFAULT_DIR/* $BASH_COMPLETION_COMPAT_DIR/*
 do
-  . $completion_file &> /dev/null
+  . "$completion_file" &> /dev/null
 done
 
 # bind TAB to completion function within the script
@@ -29,8 +29,9 @@ with_completion()
   fi
 
   # remove part after readline cursor from completion line
-  local completion_line=$(echo "${READLINE_LINE:0:READLINE_POINT}")
-  local completion_word=${completion_line##* }
+  local completion_line completion_word
+  completion_line="${READLINE_LINE:0:READLINE_POINT}"
+  completion_word="${completion_line##* }"
 
   # set completion cursor according to pmpt length
   COMP_POINT=$((${#pmpt}+${#completion_line}+1))
@@ -43,59 +44,64 @@ with_completion()
   # COMP_KEY=9
 
   # get index of word to be completed
-  local whitespaces_count=$(echo "$COMP_LINE" | grep -o ' ' | wc -l)
-  local escaped_whitespaces_count=$(echo "$COMP_LINE" | grep -o '\\ ' | wc -l)
-  COMP_CWORD=$(($whitespaces_count-$escaped_whitespaces_count))
+  local whitespaces_count escaped_whitespaces_count
+  whitespaces_count=$(echo "$COMP_LINE" | grep -o ' ' | wc -l)
+  escaped_whitespaces_count=$(echo "$COMP_LINE" | grep -o '\\ ' | wc -l)
+  COMP_CWORD=$((whitespaces_count-escaped_whitespaces_count))
 
   # get sourced completion command
-  local program_name=${COMP_WORDS[0]}
-  program_name=$(basename $program_name)
-  local complete_command=$(complete -p | grep " ${program_name}$")
+  local program_name complete_command
+  program_name=${COMP_WORDS[0]}
+  program_name=$(basename "$program_name")
+  complete_command=$(complete -p | grep " ${program_name}$")
 
   COMPREPLY=()
   # execute appropriate complete actions
-  if [[ "$complete_command" =~  " -F " ]]
+  if [[ "$complete_command" =~  \ -F\  ]]
   then
-    local complete_function=$(awk '{for(i=1;i<=NF;i++) if ($i=="-F") print $(i+1)}' <(echo $complete_command))
+    local complete_function
+    complete_function=$(awk '{for(i=1;i<=NF;i++) if ($i=="-F") print $(i+1)}' <(echo "$complete_command"))
 
     # generate completions
     $complete_function
   else
     # construct compgen command
-    local compgen_command=$(echo "$complete_command" | sed 's/^complete/compgen/g')
-    compgen_command=$(echo "$compgen_command" | sed "s/$program_name$/$completion_word/g")
+    local compgen_command
+    compgen_command=$(echo "$complete_command" | sed 's/^complete/compgen/g')
+    compgen_command="${compgen_command//$program_name/$completion_word}"
 
     # generate completions
     COMPREPLY=($($compgen_command))
   fi
 
   # get commmon prefix of available completions
-  local completions_prefix=$(printf "%s\n" "${COMPREPLY[@]}" | \
+  local completions_prefix readline_prefix readline_suffix
+  completions_prefix=$(printf "%s\n" "${COMPREPLY[@]}" | \
     sed -e '$!{N;s/^\(.*\).*\n\1.*$/\1\n\1/;D;}' | xargs)
-
-  local readline_prefix="${READLINE_LINE:0:READLINE_POINT}"
-  local readline_suffix="${READLINE_LINE:READLINE_POINT}"
+  readline_prefix="${READLINE_LINE:0:READLINE_POINT}"
+  readline_suffix="${READLINE_LINE:READLINE_POINT}"
   # remove the word to be completed
   readline_prefix=$(sed s/'\w*$'// <(echo "$readline_prefix") | xargs)
 
   READLINE_LINE=""
   if [[ "$readline_prefix" != "" ]]; then
-    READLINE_LINE=$(echo "$readline_prefix ")
+    READLINE_LINE="$readline_prefix "
   fi
 
-  READLINE_LINE=$(echo "$READLINE_LINE$completions_prefix")
+  READLINE_LINE="$READLINE_LINE$completions_prefix"
   # adjust readline cursor position
   READLINE_POINT=$((${#READLINE_LINE}+1))
 
   if [[ "$readline_suffix" != "" ]]; then
-    READLINE_LINE=$(echo "$READLINE_LINE $readline_suffix")
+    READLINE_LINE="$READLINE_LINE $readline_suffix"
   fi
 
-  local completions_count=${#COMPREPLY[@]}
-  local display_all="y"
+  local completions_count display_all
+  completions_count=${#COMPREPLY[@]}
+  display_all="y"
   if [[ $completions_count -eq 1 ]]; then
     READLINE_LINE=$(echo "$READLINE_LINE" | xargs)
-    READLINE_LINE=$(echo "$READLINE_LINE ")
+    READLINE_LINE="$READLINE_LINE "
     return
   elif [[ $completions_count -gt 80 ]]; then
     echo -en "Display all $completions_count possibilities? (y or n) "
@@ -104,7 +110,7 @@ with_completion()
   fi
 
   if [[ "$display_all" = "y" ]]; then
-    for i in ${COMPREPLY[@]}; do echo $i; done | column
+    for completion in "${COMPREPLY[@]}"; do echo "$completion"; done | column
   fi
 }
 
