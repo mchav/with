@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-VERSION="0.0.1"
+VERSION="0.0.2"
 
 # with tool
 # usage: with <program>
@@ -14,6 +14,7 @@ do
 done
 
 # bind TAB to completion function within the script
+
 bind -x '"\C-i": "with_completion"' &> /dev/null
 
 # initialise history file
