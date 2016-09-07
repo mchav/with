@@ -14,11 +14,102 @@ do
 done
 
 # bind TAB to completion function within the script
-
 bind -x '"\C-i": "with_completion"' &> /dev/null
 
 # initialise history file
 touch /tmp/with_history
+
+setup()
+{
+  __blk="$(tput setaf 0)"
+  __red="$(tput setaf 1)"
+  __grn="$(tput setaf 2)"
+  __yel="$(tput setaf 3)"
+  __blu="$(tput setaf 4)"
+  __mag="$(tput setaf 5)"
+  __cyn="$(tput setaf 6)"
+  __wht="$(tput setaf 7)"
+
+  __bold_blk="$__bold$__blk"
+  __bold_red="$__bold$__red"
+  __bold_grn="$__bold$__grn"
+  __bold_yel="$__bold$__yel"
+  __bold_blu="$__bold$__blu"
+  __bold_mag="$__bold$__mag"
+  __bold_cyn="$__bold$__cyn"
+  __bold_wht="$__bold$__wht"
+
+  __on_blk="$(tput setab 0)"
+  __on_red="$(tput setab 1)"
+  __on_grn="$(tput setab 2)"
+  __on_yel="$(tput setab 3)"
+  __on_blu="$(tput setab 4)"
+  __on_mag="$(tput setab 5)"
+  __on_cyn="$(tput setab 6)"
+  __on_wht="$(tput setab 7)"
+
+  # color reset
+  __nc="$(tput sgr0)"
+
+  __blk() { echo -n "$__blk$*$__nc"; }
+  __red() { echo -n "$__red$*$__nc"; }
+  __grn() { echo -n "$__grn$*$__nc"; }
+  __yel() { echo -n "$__yel$*$__nc"; }
+  __blu() { echo -n "$__blu$*$__nc"; }
+  __mag() { echo -n "$__mag$*$__nc"; }
+  __cyn() { echo -n "$__cyn$*$__nc"; }
+  __wht() { echo -n "$__wht$*$__nc"; }
+  
+  __bold_blk() { echo -n "$__bold_blk$*$__nc"; }
+  __bold_red() { echo -n "$__bold_red$*$__nc"; }
+  __bold_grn() { echo -n "$__bold_grn$*$__nc"; }
+  __bold_yel() { echo -n "$__bold_yel$*$__nc"; }
+  __bold_blu() { echo -n "$__bold_blu$*$__nc"; }
+  __bold_mag() { echo -n "$__bold_mag$*$__nc"; }
+  __bold_cyn() { echo -n "$__bold_cyn$*$__nc"; }
+  __bold_wht() { echo -n "$__bold_wht$*$__nc"; }
+  
+  __on_blk() { echo -n "$__on_blk$*$__nc"; }
+  __on_red() { echo -n "$__on_red$*$__nc"; }
+  __on_grn() { echo -n "$__on_grn$*$__nc"; }
+  __on_yel() { echo -n "$__on_yel$*$__nc"; }
+  __on_blu() { echo -n "$__on_blu$*$__nc"; }
+  __on_mag() { echo -n "$__on_mag$*$__nc"; }
+  __on_cyn() { echo -n "$__on_cyn$*$__nc"; }
+  __on_wht() { echo -n "$__on_wht$*$__nc"; }
+}
+
+__print_prompt() {
+      __prefix="${prefix[*]}" print_prompt "$@"
+}
+
+print_prompt() {
+
+  # TODO: change name to correct
+  hashdollar() {
+    (( UID )) && echo '$' \
+              || echo '#'
+  }
+
+  colorise_prompt() {
+    local to_be_replaced=(blk red grn yel blu mag cyn wht)
+
+    local SED_COMMAND_LINE=('sed' '-r')
+
+    for color in "${to_be_replaced[@]}"; do
+      SED_COMMAND_LINE+=(
+        '-e' "s/%on_$color%/$(eval echo "\$__on_$color")/g"
+        '-e' "s/%bold_$color%/$(eval echo "\$__bold_$color")/g"
+        '-e' "s/%$color%/$(eval echo "\$__$color")/g"
+        )
+    done
+
+    "${SED_COMMAND_LINE[@]}" -e "s/%nc%/$__nc/g"
+  }
+
+  echo -n "$*" | colorise_prompt | sed -r -e "s/%prefix%/$__prefix/g" \
+                                          -e "s/\\$/$(hashdollar)/g"
+}
 
 helpmsg="usage: with <program>"
 
@@ -26,7 +117,7 @@ with_completion()
 {
   # print readline's prompt for visual separation
   if [ "$#" -eq 0 ]; then
-      echo "$pmpt> $READLINE_LINE"
+      echo "$(__print_prompt "$PROMPT_FORMAT") $READLINE_LINE"
   fi
 
   # remove part after readline cursor from completion line
@@ -145,7 +236,7 @@ add_with()
 
 run_with()
 {
-  while IFS="" read -r -e -d $'\n' -p "$pmpt> " options; do
+  while IFS="" read -r -e -d $'\n' -p "$(__print_prompt "$PROMPT_FORMAT")" options; do
     history -s "$options" > /dev/null 2>&1
 
     curr_command="$(echo "$options" | { read -r first rest ; echo "$first" ; })"
@@ -193,6 +284,26 @@ print_help()
   echo "options:"
   echo "	-h, --help: Display this message"
   echo "	-v, --version: Display the currently installed version of with"
+  cat << 'HELP'
+  PROMPT CUSTOMIZATION
+    You can customize prompt via $PROMPT_FORMAT variable. Default
+    value is '%yel%$%nc% %cyn%%prefix%%nc% %wht%>>%nc% '. Override it
+    if you want to get prompt with/without something else.
+    For prompt format you can use:
+      $        - if the effective UID is 0, a `#`, otherwise a `$`;
+      %prefix% - the prefix;
+      %blk%    - begin black color;
+      %red%    - begin red color;
+      %grn%    - begin green color;
+      %yel%    - begin yellow color;
+      %blu%    - begin blue color;
+      %mag%    - begin purple color;
+      %cyn%    - begin cyan color;
+      %wht%    - begin white color;
+      %bold_…% - begin bold … color;
+      %on_…%   - begin background color;
+      %nc%     - color reset.
+HELP
   exit 0
 }
 
@@ -202,6 +313,13 @@ declare -a prefix
 prefix=( "$@" )
 pmpt=${prefix[*]}
 
+[ "$PROMPT_FORMAT" ] || PROMPT_FORMAT+='%yel%$%nc% ' \
+                        PROMPT_FORMAT+='%cyn%%prefix%%nc% ' \
+                        PROMPT_FORMAT+='%wht%>%nc% '
+
+HISTCONTROL=ignoreboth
+
+setup
 #add options here, such as -h, -v
 case ${prefix[*]} in
   "" )
