@@ -1,4 +1,6 @@
 # with
+
+[![Join the chat at https://gitter.im/with-tool/with](https://badges.gitter.im/with-tool/with.svg)](https://gitter.im/with-tool/with?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 Program prefixing for continuous workflow using a single tool.
 [PowerShell Implementation](https://github.com/Acader/withPS)
 
