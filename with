@@ -5,12 +5,116 @@ VERSION="0.0.1"
 # usage: with <program>
 # opens an interactive shell instance that automatically prefixes all subsequent commands with program name
 
+# source bash completions
+. /etc/bash_completion
+BASH_COMPLETION_DEFAULT_DIR=/usr/share/bash-completion/completions
+for completion_file in $BASH_COMPLETION_DEFAULT_DIR/* $BASH_COMPLETION_COMPAT_DIR/*
+do
+  . "$completion_file" &> /dev/null
+done
+
+# bind TAB to completion function within the script
+bind -x '"\C-i": "with_completion"' &> /dev/null
+
 # initialise history file
 touch /tmp/with_history
 
 helpmsg="usage: with <program>"
 
-finish() 
+with_completion()
+{
+  # print readline's prompt for visual separation
+  if [ "$#" -eq 0 ]; then
+      echo "$pmpt> $READLINE_LINE"
+  fi
+
+  # remove part after readline cursor from completion line
+  local completion_line completion_word
+  completion_line="${READLINE_LINE:0:READLINE_POINT}"
+  completion_word="${completion_line##* }"
+
+  # set completion cursor according to pmpt length
+  COMP_POINT=$((${#pmpt}+${#completion_line}+1))
+  COMP_WORDBREAKS="\n\"'><=;|&(:"
+  COMP_LINE="$pmpt $completion_line"
+  COMP_WORDS=($COMP_LINE)
+
+  # TODO: the purpose of these variables is still unclear
+  # COMP_TYPE=63
+  # COMP_KEY=9
+
+  # get index of word to be completed
+  local whitespaces_count escaped_whitespaces_count
+  whitespaces_count=$(echo "$COMP_LINE" | grep -o ' ' | wc -l)
+  escaped_whitespaces_count=$(echo "$COMP_LINE" | grep -o '\\ ' | wc -l)
+  COMP_CWORD=$((whitespaces_count-escaped_whitespaces_count))
+
+  # get sourced completion command
+  local program_name complete_command
+  program_name=${COMP_WORDS[0]}
+  program_name=$(basename "$program_name")
+  complete_command=$(complete -p | grep " ${program_name}$")
+
+  COMPREPLY=()
+  # execute appropriate complete actions
+  if [[ "$complete_command" =~  \ -F\  ]]
+  then
+    local complete_function
+    complete_function=$(awk '{for(i=1;i<=NF;i++) if ($i=="-F") print $(i+1)}' <(echo "$complete_command"))
+
+    # generate completions
+    $complete_function
+  else
+    # construct compgen command
+    local compgen_command
+    compgen_command=$(echo "$complete_command" | sed 's/^complete/compgen/g')
+    compgen_command="${compgen_command//$program_name/$completion_word}"
+
+    # generate completions
+    COMPREPLY=($($compgen_command))
+  fi
+
+  # get commmon prefix of available completions
+  local completions_prefix readline_prefix readline_suffix
+  completions_prefix=$(printf "%s\n" "${COMPREPLY[@]}" | \
+    sed -e '$!{N;s/^\(.*\).*\n\1.*$/\1\n\1/;D;}' | xargs)
+  readline_prefix="${READLINE_LINE:0:READLINE_POINT}"
+  readline_suffix="${READLINE_LINE:READLINE_POINT}"
+  # remove the word to be completed
+  readline_prefix=$(sed s/'\w*$'// <(echo "$readline_prefix") | xargs)
+
+  READLINE_LINE=""
+  if [[ "$readline_prefix" != "" ]]; then
+    READLINE_LINE="$readline_prefix "
+  fi
+
+  READLINE_LINE="$READLINE_LINE$completions_prefix"
+  # adjust readline cursor position
+  READLINE_POINT=$((${#READLINE_LINE}+1))
+
+  if [[ "$readline_suffix" != "" ]]; then
+    READLINE_LINE="$READLINE_LINE $readline_suffix"
+  fi
+
+  local completions_count display_all
+  completions_count=${#COMPREPLY[@]}
+  display_all="y"
+  if [[ $completions_count -eq 1 ]]; then
+    READLINE_LINE=$(echo "$READLINE_LINE" | xargs)
+    READLINE_LINE="$READLINE_LINE "
+    return
+  elif [[ $completions_count -gt 80 ]]; then
+    echo -en "Display all $completions_count possibilities? (y or n) "
+    read -N 1 display_all
+    echo "$display_all"
+  fi
+
+  if [[ "$display_all" = "y" ]]; then
+    for completion in "${COMPREPLY[@]}"; do echo "$completion"; done | column
+  fi
+}
+
+finish()
 {
   # save history to bash history
   if [ -f ~/.bash_history ]; then
@@ -109,22 +213,22 @@ pmpt=${prefix[*]}
 
 #add options here, such as -h, -v
 case ${prefix[*]} in
-	"" )
-	  echo "Missing arguments."
-	  echo "$helpmsg"
-	  exit 1;;
-	"-v" )
-	  print_version;;
-	"--version" )
-	  print_version;;
-	"-h" )
-	  print_help;;
-	"--help" )
-	  print_help;;
-	"-u" )
-	  update;;
-	"--update" )
-	  update;;
+  "" )
+    echo "Missing arguments."
+    echo "$helpmsg"
+    exit 1;;
+  "-v" )
+    print_version;;
+  "--version" )
+    print_version;;
+  "-h" )
+    print_help;;
+  "--help" )
+    print_help;;
+  "-u" )
+    update;;
+  "--update" )
+    update;;
 esac
 
 if ! type "$1" > /dev/null 2>&1; then
