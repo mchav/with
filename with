@@ -94,7 +94,7 @@ print_prompt() {
   colorise_prompt() {
     local to_be_replaced=(blk red grn yel blu mag cyn wht)
 
-    local SED_COMMAND_LINE=('sed' '-r')
+    local SED_COMMAND_LINE=('sed' '-E')
 
     for color in "${to_be_replaced[@]}"; do
       SED_COMMAND_LINE+=(
@@ -107,7 +107,7 @@ print_prompt() {
     "${SED_COMMAND_LINE[@]}" -e "s/%nc%/$__nc/g"
   }
 
-  echo -n "$*" | colorise_prompt | sed -r -e "s/%prefix%/$__prefix/g" \
+  echo -n "$*" | colorise_prompt | sed -E -e "s/%prefix%/$__prefix/g" \
                                           -e "s/\\$/$(hashdollar)/g"
 }
 
