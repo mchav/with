@@ -319,7 +319,6 @@ pmpt=${prefix[*]}
 
 HISTCONTROL=ignoreboth
 
-setup
 #add options here, such as -h, -v
 case ${prefix[*]} in
   "" )
@@ -335,6 +334,8 @@ case ${prefix[*]} in
   "--help" )
     print_help;;
 esac
+
+setup
 
 if ! type "$1" > /dev/null 2>&1; then
   echo "error: Program" "$1" "is not installed"
