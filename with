@@ -5,7 +5,48 @@ VERSION="0.0.2"
 # usage: with <program>
 # opens an interactive shell instance that automatically prefixes all subsequent commands with program name
 
+print_version()
+{
+  echo "with, version $VERSION"
+  exit 0
+}
+
+print_help()
+{
+  echo "with tool"
+  echo "$helpmsg"
+  echo "opens an interactive shell instance that automatically prefixes all subsequent commands with program name"
+  echo "options:"
+  echo "  -h, --help: Display this message"
+  echo "  -v, --version: Display the currently installed version of with"
+  cat << 'HELP'
+  PROMPT CUSTOMIZATION
+    You can customize prompt via $PROMPT_FORMAT variable. Default
+    value is '%yel%$%nc% %cyn%%prefix%%nc% %wht%>>%nc% '. Override it
+    if you want to get prompt with/without something else.
+    For prompt format you can use:
+      $        - if the effective UID is 0, a `#`, otherwise a `$`;
+      %prefix% - the prefix;
+      %blk%    - begin black color;
+      %red%    - begin red color;
+      %grn%    - begin green color;
+      %yel%    - begin yellow color;
+      %blu%    - begin blue color;
+      %mag%    - begin purple color;
+      %cyn%    - begin cyan color;
+      %wht%    - begin white color;
+      %bold_…% - begin bold … color;
+      %on_…%   - begin background color;
+      %nc%     - color reset.
+HELP
+  exit 0
+}
+
 #add options here, such as -h, -v
+declare -a prefix
+prefix=( "$@" )
+pmpt=${prefix[*]}
+
 case ${prefix[*]} in
   "" )
     echo "Missing arguments."
@@ -286,48 +327,7 @@ run_with()
   done
 }
 
-print_version()
-{
-  echo "with, version $VERSION"
-  exit 0
-}
-
-print_help()
-{
-  echo "with tool"
-  echo "$helpmsg"
-  echo "opens an interactive shell instance that automatically prefixes all subsequent commands with program name"
-  echo "options:"
-  echo "	-h, --help: Display this message"
-  echo "	-v, --version: Display the currently installed version of with"
-  cat << 'HELP'
-  PROMPT CUSTOMIZATION
-    You can customize prompt via $PROMPT_FORMAT variable. Default
-    value is '%yel%$%nc% %cyn%%prefix%%nc% %wht%>>%nc% '. Override it
-    if you want to get prompt with/without something else.
-    For prompt format you can use:
-      $        - if the effective UID is 0, a `#`, otherwise a `$`;
-      %prefix% - the prefix;
-      %blk%    - begin black color;
-      %red%    - begin red color;
-      %grn%    - begin green color;
-      %yel%    - begin yellow color;
-      %blu%    - begin blue color;
-      %mag%    - begin purple color;
-      %cyn%    - begin cyan color;
-      %wht%    - begin white color;
-      %bold_…% - begin bold … color;
-      %on_…%   - begin background color;
-      %nc%     - color reset.
-HELP
-  exit 0
-}
-
 trap finish exit
-
-declare -a prefix
-prefix=( "$@" )
-pmpt=${prefix[*]}
 
 [ "$PROMPT_FORMAT" ] || PROMPT_FORMAT+='%yel%$%nc% ' \
                         PROMPT_FORMAT+='%cyn%%prefix%%nc% ' \
