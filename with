@@ -5,10 +5,19 @@ VERSION="0.0.2"
 # usage: with <program>
 # opens an interactive shell instance that automatically prefixes all subsequent commands with program name
 
+# bind TAB to completion function within the script
+bind -x '"\C-i": "with_completion"' &> /dev/null
+
 print_version()
 {
   echo "with, version $VERSION"
   exit 0
+}
+
+print_options()
+{
+  echo "  -h, --help   : Display command help"
+  echo "  -v, --version: Display the currently installed version of with"
 }
 
 print_help()
@@ -17,8 +26,7 @@ print_help()
   echo "$helpmsg"
   echo "opens an interactive shell instance that automatically prefixes all subsequent commands with program name"
   echo "options:"
-  echo "  -h, --help: Display this message"
-  echo "  -v, --version: Display the currently installed version of with"
+  print_options
   cat << 'HELP'
   PROMPT CUSTOMIZATION
     You can customize prompt via $PROMPT_FORMAT variable. Default
@@ -45,39 +53,39 @@ HELP
 #add options here, such as -h, -v
 declare -a prefix
 prefix=( "$@" )
-pmpt=${prefix[*]}
 
 case ${prefix[*]} in
   "" )
     echo "Missing arguments."
-    echo "$helpmsg"
+    echo "usage: with <program>"
     exit 1;;
-  "-v" )
+  "-v"|"--version")
     print_version;;
-  "--version" )
-    print_version;;
-  "-h" )
+  "-h"|"--help")
     print_help;;
-  "--help" )
-    print_help;;
+  -*|--*)
+    echo "Unrecognised option:" ${prefix[*]}
+    print_options
+    exit 1;;
 esac
 
-# source bash completions
-. /etc/bash_completion
-BASH_COMPLETION_DEFAULT_DIR=/usr/share/bash-completion/completions
-for completion_file in $BASH_COMPLETION_DEFAULT_DIR/* $BASH_COMPLETION_COMPAT_DIR/*
-do
-  . "$completion_file" &> /dev/null
-done
-
-# bind TAB to completion function within the script
-bind -x '"\C-i": "with_completion"' &> /dev/null
-
-# initialise history file
-touch /tmp/with_history
+pmpt=${prefix[*]}
 
 setup()
 {
+  
+  # source bash completions
+  . /etc/bash_completion
+  BASH_COMPLETION_DEFAULT_DIR=/usr/share/bash-completion/completions
+  for completion_file in $BASH_COMPLETION_DEFAULT_DIR/* $BASH_COMPLETION_COMPAT_DIR/*
+  do
+    . "$completion_file" &> /dev/null
+  done
+
+  # initialise history file
+  touch /tmp/with_history
+
+  # set up colour codes
   __blk="$(tput setaf 0)"
   __red="$(tput setaf 1)"
   __grn="$(tput setaf 2)"
@@ -137,7 +145,7 @@ setup()
 }
 
 __print_prompt() {
-      __prefix="${prefix[*]}" print_prompt "$@"
+  __prefix="${prefix[*]}" print_prompt "$@"
 }
 
 print_prompt() {
@@ -167,8 +175,6 @@ print_prompt() {
   echo -n "$*" | colorise_prompt | sed -E -e "s/%prefix%/$__prefix/g" \
                                           -e "s/\\$/$(hashdollar)/g"
 }
-
-helpmsg="usage: with <program>"
 
 with_completion()
 {
@@ -272,10 +278,9 @@ finish()
   rm /tmp/with_history
 }
 
-# thanks to /u/Vaphell
 drop_with()
 {
-  if [ ${#prefix[@]} -gt 1  ]
+  if [ ${#prefix[@]} -gt 1 ]
   then
     prefix=( "${prefix[@]:0:${#prefix[@]}-1}" )
   else
@@ -327,21 +332,27 @@ run_with()
   done
 }
 
-trap finish exit
-
-[ "$PROMPT_FORMAT" ] || PROMPT_FORMAT+='%yel%$%nc% ' \
+main()
+{
+  trap finish exit
+  [ "$PROMPT_FORMAT" ] || PROMPT_FORMAT+='%yel%$%nc% ' \
                         PROMPT_FORMAT+='%cyn%%prefix%%nc% ' \
                         PROMPT_FORMAT+='%wht%>%nc% '
 
-HISTCONTROL=ignoreboth
+  HISTCONTROL=ignoreboth
 
-setup
+  # run script setup
+  setup
 
-if ! type "$1" > /dev/null 2>&1; then
-  echo "error: Program" "$1" "is not installed"
-  exit 1
-fi
+  if ! type "$1" > /dev/null 2>&1; then
+    echo "error: Program" "$1" "is not installed"
+    exit 1
+  fi
 
-while true ; do
-  run_with
-done
+  while true ; do
+    run_with
+  done
+}
+
+main
+
