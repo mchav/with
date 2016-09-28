@@ -354,5 +354,5 @@ main()
   done
 }
 
-main
+main "$@"
 
