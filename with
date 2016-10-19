@@ -75,7 +75,7 @@ setup()
 {
   
   # source bash completions
-  . /etc/bash_completion
+  [ -f /etc/bash_completion ] && source /etc/bash_completion
   BASH_COMPLETION_DEFAULT_DIR=/usr/share/bash-completion/completions
   for completion_file in $BASH_COMPLETION_DEFAULT_DIR/* $BASH_COMPLETION_COMPAT_DIR/*
   do
@@ -354,5 +354,4 @@ main()
   done
 }
 
-main
-
+main "$@"
