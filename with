@@ -172,7 +172,7 @@ print_prompt() {
     "${SED_COMMAND_LINE[@]}" -e "s/%nc%/$__nc/g"
   }
 
-  echo -n "$*" | colorise_prompt | sed -E -e "s/%prefix%/$__prefix/g" \
+  echo -n "$*" | colorise_prompt | sed -E -e "s|%prefix%|$__prefix|g" \
                                           -e "s/\\$/$(hashdollar)/g"
 }
 
