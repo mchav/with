@@ -171,8 +171,8 @@ print_prompt() {
 
     "${SED_COMMAND_LINE[@]}" -e "s/%nc%/$__nc/g"
   }
-
-  echo -n "$*" | colorise_prompt | sed -E -e "s/%prefix%/$__prefix/g" \
+  local __escaped_prefix=$(echo -n "$__prefix" | sed -e 's/\./\\./g' -e 's/\//\\\//g')
+  echo -n "$*" | colorise_prompt | sed -E -e "s/%prefix%/$__escaped_prefix/g" \
                                           -e "s/\\$/$(hashdollar)/g"
 }
 
