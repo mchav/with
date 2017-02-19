@@ -56,7 +56,8 @@ setup()
 {
 
   # source bash completions
-  . /etc/bash_completion
+  [ -f /etc/bash_completion ] && source /etc/bash_completion
+
   BASH_COMPLETION_DEFAULT_DIR=/usr/share/bash-completion/completions
   for completion_file in $BASH_COMPLETION_DEFAULT_DIR/* $BASH_COMPLETION_COMPAT_DIR/*
   do
@@ -152,8 +153,8 @@ print_prompt() {
 
     "${SED_COMMAND_LINE[@]}" -e "s/%nc%/$__nc/g"
   }
-
-  echo -n "$*" | colorise_prompt | sed -E -e "s/%prefix%/$__prefix/g" \
+  local __escaped_prefix=$(echo -n "$__prefix" | sed -e 's/\./\\./g' -e 's/\//\\\//g')
+  echo -n "$*" | colorise_prompt | sed -E -e "s/%prefix%/$__escaped_prefix/g" \
                                           -e "s/\\$/$(hashdollar)/g"
 }
 
@@ -161,7 +162,7 @@ with_completion()
 {
   # print readline's prompt for visual separation
   if [ "$#" -eq 0 ]; then
-      echo "$(__print_prompt "$PROMPT_FORMAT") $READLINE_LINE"
+      echo "$(__print_prompt "$PROMPT_FORMAT")$READLINE_LINE"
   fi
 
   # remove part after readline cursor from completion line
@@ -192,6 +193,7 @@ with_completion()
   complete_command=$(complete -p | grep " ${program_name}$")
 
   COMPREPLY=()
+
   # execute appropriate complete actions
   if [[ "$complete_command" =~  \ -F\  ]]
   then
@@ -287,9 +289,16 @@ run_with()
       "" )
         # null case: run prefix
         ${prefix[*]} ;;
-      "-" )
+      -* )
         # remove with
-        drop_with
+        parsed=${options#"-"}
+        if [ -z "$parsed" ]; then
+          drop_with
+        else
+          for ((x=0; x<$((parsed)); x++)) {
+            drop_with
+          }
+        fi
         pmpt="${prefix[*]}" ;;
       +* )
         # nesting withs
