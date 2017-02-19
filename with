@@ -27,26 +27,6 @@ print_help()
   echo "opens an interactive shell instance that automatically prefixes all subsequent commands with program name"
   echo "options:"
   print_options
-  cat << 'HELP'
-  PROMPT CUSTOMIZATION
-    You can customize prompt via $PROMPT_FORMAT variable. Default
-    value is '%yel%$%nc% %cyn%%prefix%%nc% %wht%>>%nc% '. Override it
-    if you want to get prompt with/without something else.
-    For prompt format you can use:
-      $        - if the effective UID is 0, a `#`, otherwise a `$`;
-      %prefix% - the prefix;
-      %blk%    - begin black color;
-      %red%    - begin red color;
-      %grn%    - begin green color;
-      %yel%    - begin yellow color;
-      %blu%    - begin blue color;
-      %mag%    - begin purple color;
-      %cyn%    - begin cyan color;
-      %wht%    - begin white color;
-      %bold_…% - begin bold … color;
-      %on_…%   - begin background color;
-      %nc%     - color reset.
-HELP
   exit 0
 }
 
@@ -76,6 +56,7 @@ setup()
   
   # source bash completions
   [ -f /etc/bash_completion ] && source /etc/bash_completion
+
   BASH_COMPLETION_DEFAULT_DIR=/usr/share/bash-completion/completions
   for completion_file in $BASH_COMPLETION_DEFAULT_DIR/* $BASH_COMPLETION_COMPAT_DIR/*
   do
@@ -180,7 +161,7 @@ with_completion()
 {
   # print readline's prompt for visual separation
   if [ "$#" -eq 0 ]; then
-      echo "$(__print_prompt "$PROMPT_FORMAT") $READLINE_LINE"
+      echo "$(__print_prompt "$PROMPT_FORMAT")$READLINE_LINE"
   fi
 
   # remove part after readline cursor from completion line
@@ -211,6 +192,7 @@ with_completion()
   complete_command=$(complete -p | grep " ${program_name}$")
 
   COMPREPLY=()
+
   # execute appropriate complete actions
   if [[ "$complete_command" =~  \ -F\  ]]
   then
@@ -306,9 +288,16 @@ run_with()
       "" )
         # null case: run prefix
         ${prefix[*]} ;;
-      "-" )
+      -* )
         # remove with
-        drop_with
+        parsed=${options#"-"}
+        if [ -z "$parsed" ]; then
+          drop_with
+        else
+          for ((x=0; x<$((parsed)); x++)) {
+            drop_with
+          }
+        fi
         pmpt="${prefix[*]}" ;;
       +* )
         # nesting withs
