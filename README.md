@@ -72,12 +72,14 @@ To execute a shell command proper prefix line with `:`.
 
 `git> :ls`
 
-You can also drop and add different commands.
+You can also drop, add, and replace different commands.
 
-```
+```sh
 git> +add
 git add> <some file>
-git add> -
+git add> !commit
+git commit> <arguments and message>
+git commit> -
 git>
 ```
 

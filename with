@@ -289,6 +289,11 @@ run_with()
       "" )
         # null case: run prefix
         ${prefix[*]} ;;
+      !* )
+        # replace current command
+        drop_with
+        parsed=${options#"!"}
+        add_with "$parsed" ;;
       -* )
         # remove with
         parsed=${options#"-"}
