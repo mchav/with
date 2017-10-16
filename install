@@ -1,14 +1,22 @@
 #!/usr/bin/env bash
 
-# check if user is root 
-# and re-exec the script with sudo if not
-#
-# equivalent to: [ "$(whoami)" != "root" ] && exec sudo -- "$0" "$@"
-# bash only, but without external call to whoami
-# 
-(( EUID != 0 )) && exec sudo -- "$0" "$@"
+
 
 echo "Installing with"
-sudo curl -s https://raw.githubusercontent.com/mchav/with/master/with -o /usr/bin/with && sudo chmod +x /usr/bin/with
-sudo curl -s https://raw.githubusercontent.com/mchav/with/master/with.bash-completion -o /etc/bash_completion.d/with.bash-completion
+WITH_MASTER=https://raw.githubusercontent.com/mchav/with/master
+if (( `uname` == "Darwin" )); then
+  curl -s $WITH_MASTER/with -o /usr/local/bin/with && chmod +x /usr/local/bin/with
+  curl -s $WITH_MASTER/with.bash-completion -o /usr/local/etc/bash_completion.d/with.bash-completion
+else
+  # check if user is root 
+  # and re-exec the script with sudo if not
+  #
+  # equivalent to: [ "$(whoami)" != "root" ] && exec sudo -- "$0" "$@"
+  # bash only, but without external call to whoami
+  # 
+  (( EUID != 0 )) && exec sudo -- "$0" "$@"
+  
+  sudo curl -s $WITH_MASTER/with -o /usr/bin/with && sudo chmod +x /usr/bin/with
+  sudo curl -s $WITH_MASTER/with.bash-completion -o /etc/bash_completion.d/with.bash-completion
+fi
 echo "with successfully installed!"
