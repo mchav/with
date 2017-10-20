@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 
-
-
-echo "Installing with"
-WITH_MASTER=https://raw.githubusercontent.com/mchav/with/master
 if (( `uname` == "Darwin" )); then
-  curl -s $WITH_MASTER/with -o /usr/local/bin/with && chmod +x /usr/local/bin/with
-  curl -s $WITH_MASTER/with.bash-completion -o /usr/local/etc/bash_completion.d/with.bash-completion
+  BIN=/usr/local/bin
+  BASH_COMPLETION_D=/usr/local/etc/bash_completion.d
+  CURL=curl
 else
   # check if user is root 
   # and re-exec the script with sudo if not
@@ -15,8 +12,12 @@ else
   # bash only, but without external call to whoami
   # 
   (( EUID != 0 )) && exec sudo -- "$0" "$@"
-  
-  sudo curl -s $WITH_MASTER/with -o /usr/bin/with && sudo chmod +x /usr/bin/with
-  sudo curl -s $WITH_MASTER/with.bash-completion -o /etc/bash_completion.d/with.bash-completion
+  BIN=/usr/bin
+  BASH_COMPLETION_D=/etc/bash_completion.d
+  CURL="sudo curl"
 fi
+
+echo "Installing with"
+$CURL -s https://raw.githubusercontent.com/mchav/with/master/with -o $BIN/with && chmod +x $BIN/with
+$CURL -s https://raw.githubusercontent.com/mchav/with/master/with.bash-completion -o $BASH_COMPLETION_D/with.bash-completion
 echo "with successfully installed!"
