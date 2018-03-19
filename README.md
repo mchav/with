@@ -70,6 +70,18 @@ With [bpkg](https://github.com/bpkg/bpkg):
 bpkg install mchav/with -g
 ```
 
+With FreeBSD [pkg](https://github.com/freebsd/pkg):
+
+```sh
+pkg install with
+```
+
+With FreeBSD [ports](https://www.freshports.org/misc/with/)
+
+```sh
+cd /usr/ports/misc/with && make install clean
+```
+
 With [rawgit](https://rawgit.com):
 
 ```sh
